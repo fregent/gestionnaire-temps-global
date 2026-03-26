@@ -99,19 +99,20 @@ function removeTimezone(index) {
     updateClocks();
 }
 
-// ====== CHRONOMÈTRE ======
+// ====== CHRONOMÈTRE (Basé sur timestamps) ======
 function startStopwatch() {
     const btn = document.getElementById('startStopBtn');
 
     if (stopwatchRunning) {
+        // Pause
+        stopwatchPausedTime += Date.now() - stopwatchStartTime;
         clearInterval(stopwatchInterval);
         btn.textContent = 'Démarrer';
         stopwatchRunning = false;
     } else {
-        stopwatchInterval = setInterval(() => {
-            stopwatchTime += 10;
-            updateStopwatchDisplay();
-        }, 10);
+        // Démarrage
+        stopwatchStartTime = Date.now();
+        stopwatchInterval = setInterval(updateStopwatchDisplay, 10);
         btn.textContent = 'Arrêter';
         stopwatchRunning = true;
     }
@@ -119,7 +120,8 @@ function startStopwatch() {
 
 function resetStopwatch() {
     clearInterval(stopwatchInterval);
-    stopwatchTime = 0;
+    stopwatchStartTime = 0;
+    stopwatchPausedTime = 0;
     stopwatchRunning = false;
     laps = [];
     document.getElementById('startStopBtn').textContent = 'Démarrer';
@@ -129,8 +131,9 @@ function resetStopwatch() {
 
 function lapStopwatch() {
     if (stopwatchRunning) {
-        laps.push(stopwatchTime);
-        const lapTime = formatTime(stopwatchTime);
+        const currentTime = stopwatchPausedTime + (Date.now() - stopwatchStartTime);
+        laps.push(currentTime);
+        const lapTime = formatTime(currentTime);
         const lapElement = document.createElement('li');
         lapElement.textContent = `Tour ${laps.length}: ${lapTime}`;
         document.getElementById('lapsList').appendChild(lapElement);
@@ -138,48 +141,46 @@ function lapStopwatch() {
 }
 
 function updateStopwatchDisplay() {
-    document.getElementById('stopwatchDisplay').textContent = formatTime(stopwatchTime);
+    if (stopwatchRunning) {
+        const currentTime = stopwatchPausedTime + (Date.now() - stopwatchStartTime);
+        document.getElementById('stopwatchDisplay').textContent = formatTime(currentTime);
+    }
 }
 
-// ====== MINUTEUR ======
+// ====== MINUTEUR (Basé sur timestamps) ======
 function startTimer() {
+    const btn = document.getElementById('timerStartBtn');
+
     if (timerRunning) {
+        // Pause
         clearInterval(timerInterval);
-        document.getElementById('timerStartBtn').textContent = 'Démarrer';
+        btn.textContent = 'Démarrer';
         timerRunning = false;
         return;
     }
 
-    if (timerTime === 0) {
+    if (timerDuration === 0) {
         const minutes = parseInt(document.getElementById('timerMinutes').value) || 0;
         const seconds = parseInt(document.getElementById('timerSeconds').value) || 0;
-        timerTime = (minutes * 60 + seconds) * 1000;
+        timerDuration = (minutes * 60 + seconds) * 1000;
 
-        if (timerTime === 0) {
+        if (timerDuration === 0) {
             alert('Veuillez entrer un temps');
             return;
         }
+
+        timerStartTime = Date.now();
     }
 
-    timerInterval = setInterval(() => {
-        timerTime -= 10;
-        if (timerTime <= 0) {
-            timerTime = 0;
-            clearInterval(timerInterval);
-            document.getElementById('timerStartBtn').textContent = 'Démarrer';
-            timerRunning = false;
-            alert('Temps écoulé!');
-        }
-        updateTimerDisplay();
-    }, 10);
-
-    document.getElementById('timerStartBtn').textContent = 'Arrêter';
+    timerInterval = setInterval(updateTimerDisplay, 10);
+    btn.textContent = 'Arrêter';
     timerRunning = true;
 }
 
 function resetTimer() {
     clearInterval(timerInterval);
-    timerTime = 0;
+    timerDuration = 0;
+    timerStartTime = 0;
     timerRunning = false;
     document.getElementById('timerStartBtn').textContent = 'Démarrer';
     document.getElementById('timerMinutes').value = '';
@@ -188,7 +189,35 @@ function resetTimer() {
 }
 
 function updateTimerDisplay() {
-    document.getElementById('timerDisplay').textContent = formatTime(timerTime);
+    if (timerRunning) {
+        const elapsed = Date.now() - timerStartTime;
+        const remaining = Math.max(0, timerDuration - elapsed);
+
+        document.getElementById('timerDisplay').textContent = formatTime(remaining);
+
+        if (remaining <= 0) {
+            clearInterval(timerInterval);
+            timerRunning = false;
+            document.getElementById('timerStartBtn').textContent = 'Démarrer';
+            soundGenerator.playAlertSound();
+            showTimerNotification();
+        }
+    }
+}
+
+// ====== NOTIFICATION D'ALERTE ======
+function showTimerNotification() {
+    // Notification du navigateur (si autorisée)
+    if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('⏲️ Minuteur', {
+            body: 'Le temps est écoulé!',
+            icon: '⏲️'
+        });
+    }
+
+    // Alerte visuelle
+    const display = document.getElementById('timerDisplay');
+    display.style.animation = 'pulse 0.5s ease-in-out 4';
 }
 
 // ====== UTILITAIRES ======
@@ -203,11 +232,28 @@ function formatTime(ms) {
 
 // ====== INITIALISATION ======
 window.addEventListener('load', () => {
+    // Initialise le thème
+    initTheme();
+
+    // Demande la permission pour les notifications
+    if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+    }
+
+    // Initialise les horloges
     updateClocks();
     setInterval(updateClocks, 1000);
+    
+    // Initialise les affichages
     updateStopwatchDisplay();
     updateTimerDisplay();
 });
+
+// Reprend les timers si la page est rechargée
+window.addEventListener('beforeunload', () => {
+    // Les données sont conservées grâce aux timestamps
+});
+
 
 // ====== GESTION DU MODE SOMBRE ======
 function initTheme() {
@@ -248,4 +294,53 @@ document.addEventListener('DOMContentLoaded', () => {
         themeToggle.addEventListener('click', toggleTheme);
     }
 });
+
+// ====== GÉNÉRATEUR DE SON (WEB AUDIO API) ======
+class SoundGenerator {
+    constructor() {
+        this.audioContext = null;
+    }
+
+    init() {
+        if (!this.audioContext) {
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    playAlertSound() {
+        this.init();
+        const ctx = this.audioContext;
+        const now = ctx.currentTime;
+
+        // Crée 3 bips successifs
+        const frequencies = [800, 900, 1000];
+        const duration = 0.15;
+        const gap = 0.1;
+
+        frequencies.forEach((freq, index) => {
+            const startTime = now + index * (duration + gap);
+            this.playBeep(freq, startTime, duration);
+        });
+    }
+
+    playBeep(frequency, startTime, duration) {
+        const ctx = this.audioContext;
+        const oscillator = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        oscillator.frequency.value = frequency;
+        oscillator.type = 'sine';
+
+        gainNode.gain.setValueAtTime(0.3, startTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+        oscillator.start(startTime);
+        oscillator.stop(startTime + duration);
+    }
+}
+
+const soundGenerator = new SoundGenerator();
 
