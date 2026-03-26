@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horloge Multi-Fuseaux + Minuteur + Chronomètre</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Gestionnaire Temps Global</h1>
+        
+        <!-- Section Horloge -->
+        <section class="section" id="clock-section">
+            <h2>Horloge Multi-Fuseaux</h2>
+            <div class="timezone-grid" id="timezoneGrid"></div>
+            <div class="timezone-controls">
+                <input type="text" id="cityInput" placeholder="Ajouter une ville (ex: Paris, Tokyo, New York)">
+                <button onclick="addTimezone()">Ajouter</button>
+            </div>
+        </section>
+
+        <!-- Section Chronomètre -->
+        <section class="section" id="stopwatch-section">
+            <h2>Chronomètre</h2>
+            <div class="timer-display" id="stopwatchDisplay">00:00:00</div>
+            <div class="controls">
+                <button onclick="startStopwatch()" id="startStopBtn">Démarrer</button>
+                <button onclick="resetStopwatch()">Réinitialiser</button>
+                <button onclick="lapStopwatch()">Tour</button>
+            </div>
+            <ul id="lapsList"></ul>
+        </section>
+
+        <!-- Section Minuteur -->
+        <section class="section" id="timer-section">
+            <h2>Minuteur</h2>
+            <div class="timer-display" id="timerDisplay">00:00:00</div>
+            <div class="timer-input">
+                <input type="number" id="timerMinutes" placeholder="Minutes" min="0" max="59">
+                <input type="number" id="timerSeconds" placeholder="Secondes" min="0" max="59">
+            </div>
+            <div class="controls">
+                <button onclick="startTimer()" id="timerStartBtn">Démarrer</button>
+                <button onclick="resetTimer()">Réinitialiser</button>
+            </div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
