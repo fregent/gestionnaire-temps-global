@@ -6,12 +6,14 @@ let timezones = [
 ];
 
 let stopwatchInterval = null;
-let stopwatchTime = 0;
+let stopwatchStartTime = 0;
+let stopwatchPausedTime = 0;
 let stopwatchRunning = false;
 let laps = [];
 
 let timerInterval = null;
-let timerTime = 0;
+let timerStartTime = 0;
+let timerDuration = 0;
 let timerRunning = false;
 
 // ====== HORLOGE MULTI-FUSEAUX ======
@@ -199,25 +201,11 @@ function updateTimerDisplay() {
             clearInterval(timerInterval);
             timerRunning = false;
             document.getElementById('timerStartBtn').textContent = 'Démarrer';
-            soundGenerator.playAlertSound();
-            showTimerNotification();
+            
+            // Déclenche l'alarme
+            triggerAlarm('timer');
         }
     }
-}
-
-// ====== NOTIFICATION D'ALERTE ======
-function showTimerNotification() {
-    // Notification du navigateur (si autorisée)
-    if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('⏲️ Minuteur', {
-            body: 'Le temps est écoulé!',
-            icon: '⏲️'
-        });
-    }
-
-    // Alerte visuelle
-    const display = document.getElementById('timerDisplay');
-    display.style.animation = 'pulse 0.5s ease-in-out 4';
 }
 
 // ====== UTILITAIRES ======
@@ -248,12 +236,6 @@ window.addEventListener('load', () => {
     updateStopwatchDisplay();
     updateTimerDisplay();
 });
-
-// Reprend les timers si la page est rechargée
-window.addEventListener('beforeunload', () => {
-    // Les données sont conservées grâce aux timestamps
-});
-
 
 // ====== GESTION DU MODE SOMBRE ======
 function initTheme() {
@@ -295,10 +277,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ====== GÉNÉRATEUR DE SON (WEB AUDIO API) ======
+// ====== GÉNÉRATEUR DE SON CONTINU (WEB AUDIO API) ======
 class SoundGenerator {
     constructor() {
         this.audioContext = null;
+        this.oscillators = [];
+        this.gainNodes = [];
+        this.isPlaying = false;
     }
 
     init() {
@@ -312,7 +297,7 @@ class SoundGenerator {
         const ctx = this.audioContext;
         const now = ctx.currentTime;
 
-        // Crée 3 bips successifs
+        // Crée 3 bips successifs (son court)
         const frequencies = [800, 900, 1000];
         const duration = 0.15;
         const gap = 0.1;
@@ -340,7 +325,109 @@ class SoundGenerator {
         oscillator.start(startTime);
         oscillator.stop(startTime + duration);
     }
+
+    // ====== ALARME CONTINUE ======
+    startAlarmSound() {
+        this.init();
+        if (this.isPlaying) return;
+
+        this.isPlaying = true;
+        const ctx = this.audioContext;
+
+        // Crée une alarme qui alterne entre deux fréquences
+        const playAlarmPattern = () => {
+            if (!this.isPlaying) return;
+
+            const now = ctx.currentTime;
+            const frequencies = [600, 800];
+            const duration = 0.3;
+            const gap = 0.1;
+
+            frequencies.forEach((freq, index) => {
+                const startTime = now + index * (duration + gap);
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+
+                osc.frequency.value = freq;
+                osc.type = 'sine';
+
+                gain.gain.setValueAtTime(0.4, startTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, startTime + duration);
+
+                osc.start(startTime);
+                osc.stop(startTime + duration);
+
+                this.oscillators.push(osc);
+                this.gainNodes.push(gain);
+            });
+
+            // Répète le pattern toutes les 0.7 secondes
+            setTimeout(playAlarmPattern, 700);
+        };
+
+        playAlarmPattern();
+    }
+
+    stopAlarmSound() {
+        this.isPlaying = false;
+        this.oscillators.forEach(osc => {
+            try {
+                osc.stop();
+            } catch (e) {
+                // L'oscillateur s'est déjà arrêté
+            }
+        });
+        this.oscillators = [];
+        this.gainNodes = [];
+    }
 }
 
 const soundGenerator = new SoundGenerator();
 
+// ====== GESTION DE L'ALARME ======
+let alarmType = null; // 'stopwatch' ou 'timer'
+
+function triggerAlarm(type) {
+    alarmType = type;
+    const modal = document.getElementById('alarmModal');
+    const message = document.getElementById('alarmMessage');
+
+    if (type === 'stopwatch') {
+        message.textContent = 'Le chronomètre a atteint son objectif!';
+    } else {
+        message.textContent = 'Le minuteur est écoulé!';
+    }
+
+    modal.classList.add('active');
+    soundGenerator.startAlarmSound();
+    
+    // Vibre le téléphone si possible
+    if (navigator.vibrate) {
+        navigator.vibrate([200, 100, 200, 100, 200]);
+    }
+}
+
+function stopAlarm() {
+    const modal = document.getElementById('alarmModal');
+    modal.classList.remove('active');
+    soundGenerator.stopAlarmSound();
+    alarmType = null;
+}
+
+// Ferme l'alarme si on clique en dehors de la modal
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('alarmModal');
+    if (e.target === modal) {
+        stopAlarm();
+    }
+});
+
+// Ferme l'alarme avec la touche Échap
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        stopAlarm();
+    }
+});

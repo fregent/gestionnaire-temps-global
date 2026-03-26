@@ -53,6 +53,34 @@
         </section>
     </div>
 
+    <!-- ====== MODAL ALARME ====== -->
+    <div class="alarm-modal" id="alarmModal">
+        <div class="alarm-container">
+            <div class="alarm-icon" id="alarmIcon">🔔</div>
+            <h2 class="alarm-title">ALARME!</h2>
+            <p class="alarm-message" id="alarmMessage">Le minuteur est écoulé!</p>
+            
+            <div class="alarm-time-display" id="alarmTimeDisplay">00:00:00</div>
+            
+            <div class="alarm-pulse-ring">
+                <div class="pulse-ring-1"></div>
+                <div class="pulse-ring-2"></div>
+                <div class="pulse-ring-3"></div>
+            </div>
+
+            <button class="alarm-stop-btn" id="alarmStopBtn" onclick="stopAlarm()">
+                <span class="btn-text">ARRÊTER</span>
+                <span class="btn-icon">⏹️</span>
+            </button>
+
+            <div class="alarm-sound-indicator">
+                <span class="sound-wave" id="soundWave1"></span>
+                <span class="sound-wave" id="soundWave2"></span>
+                <span class="sound-wave" id="soundWave3"></span>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
