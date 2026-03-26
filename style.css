@@ -4,44 +4,129 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
+/* ====== VARIABLES CSS (THÈME) ====== */
+:root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8f9fa;
+    --bg-tertiary: #f0f0f0;
+    --text-primary: #333333;
+    --text-secondary: #999999;
+    --border-color: #dddddd;
+    --accent-color: #667eea;
+    --accent-dark: #764ba2;
+    --accent-light: #e8eaf6;
+    --shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    --shadow-light: 0 5px 15px rgba(0, 0, 0, 0.1);
+    --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --delete-btn: #ff6b6b;
+    --delete-btn-hover: #ff5252;
 }
 
+/* ====== MODE SOMBRE ====== */
+body.dark-mode {
+    --bg-primary: #1e1e2e;
+    --bg-secondary: #2d2d44;
+    --bg-tertiary: #3a3a52;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --border-color: #444444;
+    --accent-color: #8b9aff;
+    --accent-dark: #a8b5ff;
+    --accent-light: #2d2d44;
+    --shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+    --shadow-light: 0 5px 15px rgba(0, 0, 0, 0.4);
+    --gradient: linear-gradient(135deg, #8b9aff 0%, #a8b5ff 100%);
+    --delete-btn: #ff7b7b;
+    --delete-btn-hover: #ff6b6b;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: var(--bg-primary);
+    min-height: 100vh;
+    padding: 20px;
+    color: var(--text-primary);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ====== NAVBAR ====== */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto 30px;
+    padding: 0 20px;
+}
+
+.navbar h1 {
+    font-size: 2.5em;
+    color: var(--text-primary);
+    transition: color 0.3s ease;
+}
+
+.theme-toggle {
+    background: var(--accent-color);
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.5em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-light);
+}
+
+.theme-toggle:hover {
+    background: var(--accent-dark);
+    transform: scale(1.1) rotate(20deg);
+}
+
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle .icon {
+    display: inline-block;
+    transition: transform 0.3s ease;
+}
+
+body.dark-mode .theme-toggle .icon {
+    transform: rotate(180deg);
+}
+
+/* ====== CONTAINER ====== */
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    background: white;
+    background: var(--bg-primary);
     border-radius: 15px;
     padding: 40px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow);
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-h1 {
-    text-align: center;
-    color: #333;
-    margin-bottom: 40px;
-    font-size: 2.5em;
-}
-
+/* ====== SECTIONS ====== */
 .section {
     margin-bottom: 50px;
     padding: 30px;
-    background: #f8f9fa;
+    background: var(--bg-secondary);
     border-radius: 10px;
-    border-left: 5px solid #667eea;
+    border-left: 5px solid var(--accent-color);
+    transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 h2 {
-    color: #333;
+    color: var(--text-primary);
     margin-bottom: 20px;
     font-size: 1.8em;
+    transition: color 0.3s ease;
 }
 
-/* Horloge */
+/* ====== HORLOGE ====== */
 .timezone-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -50,51 +135,60 @@ h2 {
 }
 
 .timezone-card {
-    background: white;
+    background: var(--bg-primary);
     padding: 20px;
     border-radius: 10px;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-light);
     text-align: center;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, background-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .timezone-card:hover {
     transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+}
+
+body.dark-mode .timezone-card:hover {
+    box-shadow: 0 8px 25px rgba(139, 154, 255, 0.3);
 }
 
 .timezone-card .city {
     font-weight: bold;
-    color: #667eea;
+    color: var(--accent-color);
     margin-bottom: 10px;
     font-size: 1.2em;
+    transition: color 0.3s ease;
 }
 
 .timezone-card .time {
     font-size: 2em;
     font-weight: bold;
-    color: #333;
+    color: var(--text-primary);
     font-family: 'Courier New', monospace;
     margin-bottom: 5px;
+    transition: color 0.3s ease;
 }
 
 .timezone-card .date {
-    color: #999;
+    color: var(--text-secondary);
     font-size: 0.9em;
+    transition: color 0.3s ease;
 }
 
 .timezone-card .delete-btn {
     margin-top: 10px;
     padding: 5px 10px;
-    background: #ff6b6b;
+    background: var(--delete-btn);
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
     font-size: 0.85em;
+    transition: background 0.3s ease;
 }
 
 .timezone-card .delete-btn:hover {
-    background: #ff5252;
+    background: var(--delete-btn-hover);
 }
 
 .timezone-controls {
@@ -105,19 +199,22 @@ h2 {
 .timezone-controls input {
     flex: 1;
     padding: 12px;
-    border: 2px solid #ddd;
+    border: 2px solid var(--border-color);
     border-radius: 5px;
     font-size: 1em;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 .timezone-controls input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent-color);
 }
 
 .timezone-controls button {
     padding: 12px 25px;
-    background: #667eea;
+    background: var(--accent-color);
     color: white;
     border: none;
     border-radius: 5px;
@@ -127,21 +224,22 @@ h2 {
 }
 
 .timezone-controls button:hover {
-    background: #764ba2;
+    background: var(--accent-dark);
 }
 
-/* Chronomètre et Minuteur */
+/* ====== CHRONOMÈTRE ET MINUTEUR ====== */
 .timer-display {
     font-size: 3.5em;
     font-weight: bold;
     text-align: center;
-    color: #667eea;
+    color: var(--accent-color);
     font-family: 'Courier New', monospace;
     margin-bottom: 25px;
     padding: 20px;
-    background: white;
+    background: var(--bg-tertiary);
     border-radius: 10px;
     letter-spacing: 2px;
+    transition: color 0.3s ease, background-color 0.3s ease;
 }
 
 .controls {
@@ -154,7 +252,7 @@ h2 {
 
 .controls button {
     padding: 12px 30px;
-    background: #667eea;
+    background: var(--accent-color);
     color: white;
     border: none;
     border-radius: 5px;
@@ -165,7 +263,7 @@ h2 {
 }
 
 .controls button:hover {
-    background: #764ba2;
+    background: var(--accent-dark);
 }
 
 .controls button:active {
@@ -182,44 +280,75 @@ h2 {
 .timer-input input {
     width: 120px;
     padding: 10px;
-    border: 2px solid #ddd;
+    border: 2px solid var(--border-color);
     border-radius: 5px;
     font-size: 1em;
     text-align: center;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 }
 
 .timer-input input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--accent-color);
 }
 
 #lapsList {
     list-style: none;
-    background: white;
+    background: var(--bg-primary);
     padding: 15px;
     border-radius: 10px;
     max-height: 300px;
     overflow-y: auto;
+    transition: background-color 0.3s ease;
 }
 
 #lapsList li {
     padding: 10px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--border-color);
     font-family: 'Courier New', monospace;
-    color: #333;
+    color: var(--text-primary);
+    transition: color 0.3s ease, border-color 0.3s ease;
 }
 
 #lapsList li:last-child {
     border-bottom: none;
 }
 
+/* ====== SCROLLBAR PERSONNALISÉE ====== */
+#lapsList::-webkit-scrollbar {
+    width: 8px;
+}
+
+#lapsList::-webkit-scrollbar-track {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+}
+
+#lapsList::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 10px;
+}
+
+#lapsList::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-dark);
+}
+
+/* ====== RESPONSIVE ====== */
 @media (max-width: 768px) {
-    .container {
-        padding: 20px;
+    .navbar {
+        flex-direction: column;
+        gap: 15px;
+        margin-bottom: 20px;
     }
 
-    h1 {
+    .navbar h1 {
         font-size: 1.8em;
+    }
+
+    .container {
+        padding: 20px;
     }
 
     .timer-display {
@@ -229,4 +358,19 @@ h2 {
     .timezone-grid {
         grid-template-columns: 1fr;
     }
+
+    .theme-toggle {
+        width: 45px;
+        height: 45px;
+        font-size: 1.2em;
+    }
+}
+
+/* ====== ANIMATIONS DE TRANSITION ====== */
+body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }

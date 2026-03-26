@@ -32,7 +32,7 @@ function updateClocks() {
         });
 
         const parts = formatter.formatToParts(now);
-        const time = `${parts[6].value}:${parts[4].value}:${parts[2].value}`;
+        const time = `${parts[6].value}:${parts[8].value}:${parts[10].value}`;
         const date = `${parts[0].value}/${parts[2].value}/${parts[4].value}`;
 
         const card = document.createElement('div');
@@ -208,3 +208,44 @@ window.addEventListener('load', () => {
     updateStopwatchDisplay();
     updateTimerDisplay();
 });
+
+// ====== GESTION DU MODE SOMBRE ======
+function initTheme() {
+    // Vérifie si l'utilisateur a une préférence sauvegardée
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    if (savedTheme) {
+        document.body.classList.toggle('dark-mode', savedTheme === 'dark');
+    } else if (prefersDark) {
+        document.body.classList.add('dark-mode');
+        localStorage.setItem('theme', 'dark');
+    }
+
+    updateThemeIcon();
+}
+
+function updateThemeIcon() {
+    const icon = document.getElementById('themeToggle').querySelector('.icon');
+    if (document.body.classList.contains('dark-mode')) {
+        icon.textContent = '☀️';
+    } else {
+        icon.textContent = '🌙';
+    }
+}
+
+function toggleTheme() {
+    document.body.classList.toggle('dark-mode');
+    const isDark = document.body.classList.contains('dark-mode');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateThemeIcon();
+}
+
+// Ajoute l'écouteur au bouton
+document.addEventListener('DOMContentLoaded', () => {
+    const themeToggle = document.getElementById('themeToggle');
+    if (themeToggle) {
+        themeToggle.addEventListener('click', toggleTheme);
+    }
+});
+
